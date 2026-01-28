@@ -1,37 +1,44 @@
 import pandas as pd
 from pathlib import Path
 
-# Path to data folder
 DATA_DIR = Path("data")
-
-# List to hold processed dataframes
 dfs = []
 
-# Loop through all CSV files in data folder
 for csv_file in DATA_DIR.glob("*.csv"):
     df = pd.read_csv(csv_file)
 
-    # Keep only Pink Morsels
-    df = df[df["product"] == "Pink Morsel"]
+    # Normalize product
+    df["product"] = df["product"].str.strip().str.lower()
+    df = df[df["product"] == "pink morsel"]
 
-    # Create sales column
+    # 🔥 FIX: clean price and quantity
+    df["price"] = (
+        df["price"]
+        .astype(str)
+        .str.replace("$", "", regex=False)
+        .astype(float)
+    )
+
+    df["quantity"] = df["quantity"].astype(int)
+
+    # Correct sales calculation
     df["Sales"] = df["quantity"] * df["price"]
 
-    # Keep required columns
-    df = df[["Sales", "date", "region"]]
-
-    # Rename columns to match spec
-    df = df.rename(columns={
-        "date": "Date",
-        "region": "Region"
-    })
+    df = df[["Sales", "date", "region"]].rename(
+        columns={"date": "Date", "region": "Region"}
+    )
 
     dfs.append(df)
 
-# Combine all regions into one dataframe
 final_df = pd.concat(dfs, ignore_index=True)
 
-# Write output file
+# Aggregate per day & region (important!)
+final_df = (
+    final_df
+    .groupby(["Date", "Region"], as_index=False)["Sales"]
+    .sum()
+)
+
 final_df.to_csv("pink_morsel_sales.csv", index=False)
 
-print("✅ pink_morsel_sales.csv created successfully")
+print("✅ pink_morsel_sales.csv recreated correctly")
