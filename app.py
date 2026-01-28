@@ -23,6 +23,7 @@ app.layout = html.Div(
     children=[
         html.H1(
             "Pink Morsel Sales Visualiser",
+            id="header",
             style={
                 "textAlign": "center",
                 "color": "#e75480",
@@ -56,7 +57,7 @@ app.layout = html.Div(
                 ),
 
                 dcc.RadioItems(
-                    id="region-filter",
+                    id="region-picker",   # ✅ REQUIRED BY TESTS
                     options=[
                         {"label": "All", "value": "all"},
                         {"label": "North", "value": "north"},
@@ -71,14 +72,16 @@ app.layout = html.Div(
             ],
         ),
 
-        dcc.Graph(id="sales-line-chart")
+        dcc.Graph(
+            id="sales-graph"   # ✅ REQUIRED BY TESTS
+        )
     ]
 )
 
 # Callback to update chart
 @app.callback(
-    Output("sales-line-chart", "figure"),
-    Input("region-filter", "value")
+    Output("sales-graph", "figure"),
+    Input("region-picker", "value")
 )
 def update_chart(selected_region):
     if selected_region == "all":
